@@ -1,0 +1,65 @@
+@for (report of reportsList; track report; let index = $index) {
+@if (index % 3 == 0) {
+<div class="row">
+    <div class="col-sm-4">
+        <div class="card w-75 mb-3">
+            <div class="card-body">
+                <h5 class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    {{report.date}}
+                    <a href="#" [routerLink]="['/edit',report.id]">
+                        <img class="imageOptions" src="/assets/edit.png" alt="Editar relato">
+                    </a>
+                    <a href="#">
+                        <img class="imageOptions" src="/assets/delete.png" alt="Deletar relato">
+                    </a>
+                </h5>
+                <p class="card-text">{{report.report.slice(0,100) + " ..."}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+}
+@else {
+    cu velho
+<div class="col-sm-4">
+    <div class="card w-75 mb-3">
+        <div class="card-body">
+            <h5 class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                {{report.date}}
+                <a href="#" [routerLink]="['/edit',report.id]">
+                    <img class="imageOptions" src="/assets/edit.png" alt="Editar relato">
+                </a>
+                <a href="#">
+                    <img class="imageOptions" src="/assets/delete.png" alt="Deletar relato">
+                </a>
+            </h5>
+            <p class="card-text">{{report.report.slice(0,100) + " ..."}}</p>
+        </div>
+    </div>
+</div>
+}
+}
+
+
+<div id="divReportList">
+    <div class="modal fade" id="formModal" tabindex="-1" role="dialog" aria-labelledby="formModaltitle"
+        aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="formModaltitle">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+.mainHeader {
+    height: 200px;
+    margin-top: 10px;
+    background-image: url('/assets/green_cover.png');
+    background-size: cover; /* Ajusta a imagem para cobrir toda a div */
+    background-repeat: no-repeat; /* Evita a repetição da imagem */
+    background-position: center; /* Centraliza a imagem */
+    align-items: center;
+}
+
+
+.imageLogout{
+    width: 45px;
+    height: 45px;
+}
+
+a {
+    text-decoration: none; /* Remove sublinhado padrão */
+    color: inherit; /* Mantém a cor padrão do texto */
+    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+}
