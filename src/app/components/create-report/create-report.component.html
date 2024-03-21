@@ -1,9 +1,22 @@
-<form>
-    <div class="form-group">
-      <label id="labelReportDate">Email address</label>
-    </div>
-    <div class="form-group">
-      <label for="textAreaReport">Relato:</label>
-      <textarea class="form-control" id="textAreaReport" rows="10"></textarea>
-    </div>
-  </form>
+<form   [formGroup]="formCreateReport" (ngSubmit)="create()">  
+
+  <div class="form-group">
+    <input class="form-control border-0" type="hidden" name="date" id="date" formControlName="date" style="background-color: white;">
+  </div>
+
+  <div class="form-group">
+    <label for="textAreaReport"><h5 id="labelReportDate">{{formCreateReport.get('date')?.value}}</h5></label>
+    <textarea class="form-control" id="textAreaReport" rows="10" formControlName="report"></textarea>
+  </div>    
+  @if(formCreateReport.get("report")?.errors?.["required"] && formCreateReport.get("report")?.touched){
+    <div style="color:rgb(167, 11, 11)">Se não há relato, não há o que salvar!</div>
+  }
+
+  <button class="btn btn-danger m-3" [routerLink]="['']">Cancelar</button>
+  @if (formCreateReport.invalid) {
+    <button class="btn btn-secondary" disabled>Salvar</button>
+  }
+  @else {
+    <button class="btn btn-primary" type="submit">Salvar</button>
+  }
+</form>

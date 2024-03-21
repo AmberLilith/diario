@@ -1,0 +1,23 @@
+<button type="button" id="activateModal" class="btn btn-primary" data-toggle="modal" data-target="#modalConfirmDeletaion" style="display: none;">
+    Launch demo modal
+  </button>
+<div class="modal fade" id="modalConfirmDeletaion" tabindex="-1" role="dialog" aria-labelledby="formModaltitle" aria-hidden="true"
+    data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="formModaltitle">Confirme exclusão</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Deseja realmente excluir o relato id {{reportIdToDelete}}?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" [routerLink]="['']">Cancelar</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" (click)="delete()">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>

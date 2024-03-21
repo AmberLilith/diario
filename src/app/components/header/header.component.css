@@ -2,9 +2,9 @@
     height: 200px;
     margin-top: 10px;
     background-image: url('/assets/green_cover.png');
-    background-size: cover; /* Ajusta a imagem para cobrir toda a div */
-    background-repeat: no-repeat; /* Evita a repetição da imagem */
-    background-position: center; /* Centraliza a imagem */
+    background-size: cover; 
+    background-repeat: no-repeat;
+    background-position: center;
     align-items: center;
 }
 
@@ -15,7 +15,7 @@
 }
 
 a {
-    text-decoration: none; /* Remove sublinhado padrão */
-    color: inherit; /* Mantém a cor padrão do texto */
-    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    text-decoration: none; 
+    color: inherit; 
+    cursor: pointer;
 }

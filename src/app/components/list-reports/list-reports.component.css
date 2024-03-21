@@ -1,8 +1,13 @@
 a {
-    text-decoration: none; /* Remove sublinhado padrão */
-    color: inherit; /* Mantém a cor padrão do texto */
-    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    text-decoration: none; 
+    color: inherit; 
+    cursor: pointer;
 }
+
+.divCreate{
+    margin-top: 10px;
+}
+
 
 .imageOptions{
     width: 45px;
@@ -20,6 +25,21 @@ a {
     height: 200px;
     padding-left: 22px;
     background-image: url('/assets/page.png');
-    background-size: cover; /* Ajusta a imagem para cobrir toda a div */
-    background-repeat: no-repeat; /* Evita a repetição da imagem */
+    background-size: cover;
+    background-repeat: no-repeat; 
 } 
+
+.mural {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin: 1rem 0 2rem;
+  }
+  
+  .d-flex{
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  

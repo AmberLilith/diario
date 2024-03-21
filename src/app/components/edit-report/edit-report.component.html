@@ -1,12 +1,22 @@
-<form   [formGroup]="formEditReport" (ngSubmit)="update()">
-  <h5 id="labelReportDate">{{reportToEdit != null ? reportToEdit.date : ""}}</h5>
+<form   [formGroup]="formEditReport" (ngSubmit)="update()">  
+
     <div class="form-group">
       <input class="form-control border-0" type="hidden" name="date" id="date" formControlName="date" style="background-color: white;">
     </div>
+
     <div class="form-group">
-      <label for="textAreaReport">Relato:</label>
+      <label for="textAreaReport"><h5 id="labelReportDate">{{reportToEdit != null ? reportToEdit.date + ":" : ""}}</h5></label>
       <textarea class="form-control" id="textAreaReport" rows="10" formControlName="report"></textarea>
-    </div>
+    </div>    
+    @if(formEditReport.get("report")?.errors?.["required"] && formEditReport.get("report")?.touched){
+      <div style="color:rgb(167, 11, 11)">Se não há relato, não há o que salvar!</div>
+    }
+
     <button class="btn btn-danger m-3" [routerLink]="['']">Cancelar</button>
-    <button class="btn btn-primary" type="submit">Salvar</button>
+    @if (formEditReport.invalid) {
+      <button class="btn btn-secondary" disabled>Salvar</button>
+    }
+    @else {
+      <button class="btn btn-primary" type="submit">Salvar</button>
+    }
   </form>

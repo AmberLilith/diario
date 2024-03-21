@@ -10,10 +10,19 @@ export class ReportService {
   API = "http://localhost:3000/reports"
   constructor(private httpClient: HttpClient) { }
 
+  create(report: Report): Observable<Report>{
+    return this.httpClient.post<Report>(this.API, report)
+  }
+
 
   update(id: string, report: Report): Observable<any> {
     return this.httpClient.put<any>(`${this.API}/${id}`, report);
   }
+
+  delete(id: number): Observable<void> {
+    return this.httpClient.delete<void>(`${this.API}/${id}`);
+  }
+  
   
 
   listAll(): Observable<Report[]> {

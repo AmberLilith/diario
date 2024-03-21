@@ -1,0 +1,23 @@
+<div class="model">
+    
+  <div class="actions">
+    <h3 class="date"><b>{{ report.date.split("-")[0] }}</b></h3>
+   <div class="edit">
+    <a>
+      <img src="/assets/edit.png" alt="Editar relato" [routerLink]="['/edit', report.id]">
+      <div>Editar</div>
+    </a>
+   </div>
+   <div class="delete">
+    <a>
+      <img src="/assets/delete.png" alt="Excluir relato" [routerLink]="['/delete', report.id]">
+      <div>Deletar</div>
+    </a>
+   </div>
+ </div>
+
+ <p class="content">{{ report.report.slice(0,130) + " ..." }}</p>
+
+
+
+</div>
