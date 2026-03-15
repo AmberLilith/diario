@@ -1,0 +1,149 @@
+.entry-form-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px;
+}
+
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.form-header h1 {
+    font-size: 24px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.entry-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.section-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.editor-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: var(--mat-sys-surface-variant);
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--mat-sys-outline-variant);
+    margin: 0 4px;
+}
+
+.quill-editor {
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 0 0 8px 8px;
+    min-height: 240px;
+}
+
+::ng-deep .quill-editor .ql-container {
+    font-size: 16px;
+    font-family: inherit;
+    border: none !important;
+    border-radius: 0 0 8px 8px;
+}
+
+::ng-deep .quill-editor .ql-editor {
+    min-height: 220px;
+    padding: 16px;
+    line-height: 1.7;
+}
+
+::ng-deep .quill-editor .ql-editor img {
+    max-width: 340px;
+    width: 100%;
+    border-radius: 8px;
+    margin: 8px 0;
+    display: block;
+    cursor: pointer;
+}
+
+::ng-deep .quill-editor .ql-toolbar {
+    display: none;
+}
+
+.emotion-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.emotion-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.emotion-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+    font-size: 14px;
+}
+
+.emotion-emoji {
+    font-size: 18px;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: inherit;
+    opacity: 0.7;
+    padding: 0 2px;
+}
+
+.remove-btn:hover {
+    opacity: 1;
+}
+
+.emotion-placeholder {
+    font-size: 14px;
+    color: var(--mat-sys-on-surface-variant);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+}
+
+mat-spinner {
+    display: inline-block;
+}
