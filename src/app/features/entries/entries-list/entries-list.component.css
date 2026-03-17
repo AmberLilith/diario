@@ -51,7 +51,7 @@
 }
 .entry-card:hover { transform: translateY(-2px); }
 
-.card-photo { height: 120px; object-fit: cover; opacity: 0.9; }
+.card-photo { height: 30px; width: 30px; object-fit: cover; opacity: 0.9; }
 
 .card-header {
   display: flex;

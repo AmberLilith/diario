@@ -1,24 +1,24 @@
-import { Component, OnInit, OnDestroy, signal, inject, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 
-import { EntriesService } from '../../../core/services/entries.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { SupabaseService } from '../../../core/services/supabase.service';
 import { Entry } from '../../../core/models';
+import { AuthService } from '../../../core/services/auth.service';
+import { EntriesService } from '../../../core/services/entries.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
   selector: 'app-entries-list',
@@ -28,7 +28,7 @@ import { Entry } from '../../../core/models';
     MatButtonModule, MatIconModule, MatCardModule,
     MatProgressSpinnerModule, MatMenuModule, MatSnackBarModule,
     MatTooltipModule, MatFormFieldModule, MatInputModule,
-    MatDatepickerModule, MatNativeDateModule,
+    MatDatepickerModule, MatNativeDateModule
   ],
   templateUrl: './entries-list.component.html',
   styleUrl: './entries-list.component.css'
@@ -162,9 +162,17 @@ export class EntriesListComponent implements OnInit, OnDestroy {
   }
 
   getFirstImage(content: string): string | null {
+    console.log(content)
     const div = document.createElement('div');
     div.innerHTML = content;
     const img = div.querySelector('img');
     return img ? img.src : null;
   }
+
+  getImages(content: string): HTMLImageElement[] | null {
+  const div = document.createElement('div');
+  div.innerHTML = content;  
+  const imgs = div.querySelectorAll('img');
+  return imgs.length > 0 ? Array.from(imgs) : null;
+}
 }

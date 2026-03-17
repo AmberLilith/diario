@@ -39,7 +39,7 @@
             </div>
 
             <quill-editor #quillEditor formControlName="content" [modules]="quillModules"
-                placeholder="Conte sua vivência..." class="quill-editor" (onEditorCreated)="onEditorCreated($event)">
+                placeholder="Conte sua vivência..." class="quill-editor" (onEditorCreated)="onEditorCreated($event)" (onContentChanged)="helper.getAllPhotosPaths(form.get('content')!.value)">
             </quill-editor>
 
             <input #photoInput type="file" accept="image/*" multiple hidden (change)="onPhotoSelected($event)">

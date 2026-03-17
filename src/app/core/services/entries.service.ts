@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { SupabaseService } from './supabase.service';
+import { Entry, EntryForm } from '../models';
 import { AuthService } from './auth.service';
-import { Entry, EntryForm, EntryPhoto } from '../models';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class EntriesService {
@@ -81,6 +81,7 @@ export class EntriesService {
         content: form.content,
         content_text: this.extractText(form.content),
         emotion_id: form.emotion_id || null,
+        photos_paths: form.photos_paths
       })
       .select('*, emotion:emotions(*)')
       .single();
@@ -96,7 +97,7 @@ export class EntriesService {
     return this.getById(entry.id);
   }
 
-  async update(id: string, form: EntryForm): Promise<Entry> {
+  async update(id: string, form: EntryForm, notDeletedphotosPaths: string[]): Promise<Entry> {
     const userId = this.auth.getUserId();
 
     const { error } = await this.supabase.client
@@ -105,6 +106,7 @@ export class EntriesService {
         content: form.content,
         content_text: this.extractText(form.content),
         emotion_id: form.emotion_id || null,
+        photos_paths: form.photos_paths
       })
       .eq('id', id);
 
@@ -120,14 +122,18 @@ export class EntriesService {
 
   async delete(id: string): Promise<void> {
     // Busca paths das fotos para deletar do storage
-    const { data: photos } = await this.supabase.client
-      .from('entry_photos')
-      .select('path')
-      .eq('entry_id', id);
+    const {data, error: fetchError} = await this.supabase.client
+      .from('entries')
+      .select('photos_paths')
+      .eq('id', id)
+      .single();
 
-    if (photos && photos.length > 0) {
-  const paths = photos.map((p: { path: string }) => p.path);
-  await this.supabase.client.storage.from(this.BUCKET).remove(paths);
+      const photosPaths = data?.photos_paths;
+      console.log("o path recuperado é " + photosPaths)
+
+    if (photosPaths && photosPaths.length > 0) {
+      console.log("o path será deletado " + photosPaths)
+  await this.supabase.client.storage.from(this.BUCKET).remove(photosPaths);
 }
 
     const { error } = await this.supabase.client
@@ -138,15 +144,11 @@ export class EntriesService {
     if (error) throw error;
   }
 
-  async deletePhoto(photo: EntryPhoto): Promise<void> {
-    await this.supabase.client.storage.from(this.BUCKET).remove([photo.path]);
-
-    const { error } = await this.supabase.client
-      .from('entry_photos')
-      .delete()
-      .eq('id', photo.id);
-
+  async deletePhotos(photosPaths: string[] | null): Promise<void> {
+   if(photosPaths){
+    const {error} = await this.supabase.client.storage.from(this.BUCKET).remove(photosPaths);
     if (error) throw error;
+   }
   }
 
   private async uploadPhotos(files: File[], entryId: string, userId: string): Promise<void> {

@@ -1,25 +1,25 @@
-import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { QuillModule } from 'ngx-quill';
 
-import { EntriesService } from '../../../core/services/entries.service';
-import { EmotionsService } from '../../../core/services/emotions.service';
-import { EmotionPickerDialogComponent } from '../../emotions/emotion-picker-dialog/emotion-picker-dialog.component';
-import { Emotion, EntryPhoto } from '../../../core/models';
-import { LightboxComponent } from '../../../shared/components/lightbox/lightbox.component';
+import { Emotion, Entry, EntryPhoto } from '../../../core/models';
 import { AuthService } from '../../../core/services/auth.service';
+import { EmotionsService } from '../../../core/services/emotions.service';
+import { EntriesService } from '../../../core/services/entries.service';
 import { HelperService } from '../../../services/helper/helper.service';
+import { LightboxComponent } from '../../../shared/components/lightbox/lightbox.component';
+import { EmotionPickerDialogComponent } from '../../emotions/emotion-picker-dialog/emotion-picker-dialog.component';
 
 interface PhotoPreview {
   url: string;
@@ -48,7 +48,7 @@ export class EntryFormComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private auth = inject(AuthService);
-  private helper = inject(HelperService)
+  helper = inject(HelperService)
 
   form = this.fb.group({
     content: ['', Validators.required],
@@ -64,17 +64,18 @@ export class EntryFormComponent implements OnInit {
   isEdit = false;
   entryId: string | null = null;
   entryFormattedDate: string | null = null;
+  entryToEdit: Entry | null = null
 
   async ngOnInit() {
     await this.emotionsService.loadAll();
     this.entryId = this.route.snapshot.paramMap.get('id');
 
     if (this.entryId) {
-      this.isEdit = true;      
-      const entry = await this.entriesService.getById(this.entryId);
-      this.entryFormattedDate = this.helper.formatDate(entry.created_at)
-      this.form.patchValue({content: entry.content });
-      if (entry.emotion) this.selectedEmotion.set(entry.emotion);
+      this.isEdit = true;
+      this.entryToEdit = await this.entriesService.getById(this.entryId);
+      this.entryFormattedDate = this.helper.formatDate(this.entryToEdit.created_at)
+      this.form.patchValue({ content: this.entryToEdit.content });
+      if (this.entryToEdit.emotion) this.selectedEmotion.set(this.entryToEdit.emotion);
     }
   }
 
@@ -150,18 +151,25 @@ export class EntryFormComponent implements OnInit {
     this.loading.set(true);
 
     try {
-      const now = new Date();
-      const pad = (n: number) => n.toString().padStart(2, '0');
       const formData = {
-        content: this.quillInstance ? this.quillInstance.root.innerHTML : this.form.value.content!,
+        content: this.quillInstance.root.innerHTML,
         emotion_id: this.selectedEmotion()?.id ?? null,
-        photo_files: [],
+        photo_files: [],        
+        photos_paths: this.helper.getAllPhotosPaths(this.quillInstance.root.innerHTML)
       };
-      
+
 
       if (this.isEdit && this.entryId) {
-        await this.entriesService.update(this.entryId, formData);
+        //const photosPathsFromEditor = this.getAllPhotosPathsFromEditor()
+        const notDeletedphotosPathsFromEditor = this.helper.getAllPhotosPaths(this.form.get('content')?.value); //paths das imagens que o usuário não excluiu do editor
+        console.log("paths do banco " + this.entryToEdit?.photos_paths)
+        const photosPathsToDelete = this.entryToEdit?.photos_paths?.filter(path => !notDeletedphotosPathsFromEditor?.includes(path)); //o que em entryToEdit?.photos_paths que não tem no notDeletedphotosPathsFromEditor. É o que te que excluir
+        if(photosPathsToDelete){
+          this.entriesService.deletePhotos(photosPathsToDelete)
+        }
+        await this.entriesService.update(this.entryId, formData,[]);
       } else {
+        console.log("salvando novo")
         await this.entriesService.create(formData);
       }
 
@@ -175,4 +183,13 @@ export class EntryFormComponent implements OnInit {
   }
 
   goBack() { this.router.navigate(['/entries']); }
+
+  getImages(content: string): HTMLImageElement[] | null {
+  const div = document.createElement('div');
+  div.innerHTML = content;  
+  const imgs = div.querySelectorAll('img');
+  console.log(Array.from(imgs).map(img => img.src))
+  return imgs.length > 0 ? Array.from(imgs) : null;
+}
+  
 }

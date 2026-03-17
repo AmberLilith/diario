@@ -101,12 +101,14 @@
       @for (entry of filteredEntries(); track entry.id) {
         <mat-card class="entry-card" (click)="viewEntry(entry)">
 
-          @if (getFirstImage(entry.content)) {
-            <img
+          @if (getImages(entry.content)) {
+            @for(img of getImages(entry.content); track img.src){
+              <img
               mat-card-image
-              [src]="getFirstImage(entry.content)!"
+              [src]="img.src"
               [alt]="entry.created_at"
               class="card-photo">
+            }
           }
 
           <mat-card-content>

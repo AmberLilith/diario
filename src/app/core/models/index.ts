@@ -28,7 +28,7 @@ export interface Entry {
   content_text: string | null;
   emotion_id: string | null;
   emotion?: Emotion;
-  photos?: EntryPhoto[];
+  photos_paths?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +37,7 @@ export interface EntryForm {
   content: string;
   emotion_id: string | null;
   photo_files?: File[];
+  photos_paths: string[];
 }
 
 export interface EmotionForm {
