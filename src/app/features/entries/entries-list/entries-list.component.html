@@ -102,6 +102,7 @@
         <mat-card class="entry-card" (click)="viewEntry(entry)">
 
           @if (getImages(entry.content)) {
+            <div class="container-photos">
             @for(img of getImages(entry.content); track img.src){
               <img
               mat-card-image
@@ -109,6 +110,7 @@
               [alt]="entry.created_at"
               class="card-photo">
             }
+            </div>
           }
 
           <mat-card-content>

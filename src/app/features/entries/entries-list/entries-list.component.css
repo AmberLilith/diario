@@ -51,7 +51,15 @@
 }
 .entry-card:hover { transform: translateY(-2px); }
 
-.card-photo { height: 30px; width: 30px; object-fit: cover; opacity: 0.9; }
+.container-photos {
+  display: flex;       /* Alinha os filhos em linha */
+  flex-direction: row; /* Garante que fiquem lado a lado */
+  gap: 8px;            /* Espaçamento entre as fotos */
+  flex-wrap: wrap;     /* Quebra linha se não couber no espaço */
+  align-items: center; /* Alinha verticalmente ao centro */
+}
+
+.card-photo { height: 30px; width: 30px; object-fit: cover; opacity: 0.9; border-radius: 4px;}
 
 .card-header {
   display: flex;
