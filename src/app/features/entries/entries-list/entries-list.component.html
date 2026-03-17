@@ -4,10 +4,10 @@
     <div>
       <h1>Diário</h1>
       <p class="subtitle">
-        {{ filteredEntries().length }}
-        relato{{ filteredEntries().length !== 1 ? 's' : '' }}
+        {{ entries().length }}
+        relato{{ entries().length !== 1 ? 's' : '' }}
         @if (hasActiveFilters()) {
-          encontrado{{ filteredEntries().length !== 1 ? 's' : '' }}
+          encontrado{{ entries().length !== 1 ? 's' : '' }}
         }
       </p>
     </div>
@@ -87,7 +87,7 @@
         Criar primeiro relato
       </button>
     </div>
-  } @else if (filteredEntries().length === 0) {
+  } @else if (entries().length === 0) {
     <div class="empty-state">
       <mat-icon class="empty-icon">search_off</mat-icon>
       <h2>Nenhum resultado</h2>
@@ -98,7 +98,7 @@
     </div>
   } @else {
     <div class="entries-grid">
-      @for (entry of filteredEntries(); track entry.id) {
+      @for (entry of entries(); track entry.id) {
         <mat-card class="entry-card" (click)="viewEntry(entry)">
 
           @if (getImages(entry.content)) {
@@ -153,6 +153,16 @@
         </mat-card>
       }
     </div>
+    @if (totalCount() > PAGE_SIZE) {
+  <mat-paginator
+    [length]="totalCount()"
+    [pageSize]="PAGE_SIZE"
+    [pageIndex]="currentPage()"
+    [hidePageSize]="true"
+    (page)="onPageChange($event)"
+    class="paginator">
+  </mat-paginator>
+}
   }
 
 </div>

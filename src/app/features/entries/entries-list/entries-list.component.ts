@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -28,7 +29,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
     MatButtonModule, MatIconModule, MatCardModule,
     MatProgressSpinnerModule, MatMenuModule, MatSnackBarModule,
     MatTooltipModule, MatFormFieldModule, MatInputModule,
-    MatDatepickerModule, MatNativeDateModule
+    MatDatepickerModule, MatNativeDateModule, MatPaginatorModule,
   ],
   templateUrl: './entries-list.component.html',
   styleUrl: './entries-list.component.css'
@@ -41,63 +42,50 @@ export class EntriesListComponent implements OnInit, OnDestroy {
   private snackBar = inject(MatSnackBar);
 
   private realtimeChannel: any = null;
+  private searchDebounce: any = null;
+
+  readonly PAGE_SIZE = 6;
 
   entries = signal<Entry[]>([]);
+  totalCount = signal(0);
   loading = signal(true);
   searchTerm = signal('');
   dateFrom = signal<Date | null>(null);
   dateTo = signal<Date | null>(null);
-
-  filteredEntries = computed(() => {
-    const term = this.searchTerm().toLowerCase().trim();
-    const from = this.dateFrom();
-    const to = this.dateTo();
-
-    return this.entries().filter(entry => {
-      if (term) {
-        const div = document.createElement('div');
-        div.innerHTML = entry.content;
-        const text = (div.textContent || div.innerText || '').toLowerCase();
-        const emotionLabel = entry.emotion?.label.toLowerCase() ?? '';
-        if (!text.includes(term) && !emotionLabel.includes(term)) return false;
-      }
-
-      const entryDate = new Date(entry.created_at);
-      if (from) {
-        const fromStart = new Date(from);
-        fromStart.setHours(0, 0, 0, 0);
-        if (entryDate < fromStart) return false;
-      }
-      if (to) {
-        const toEnd = new Date(to);
-        toEnd.setHours(23, 59, 59, 999);
-        if (entryDate > toEnd) return false;
-      }
-
-      return true;
-    });
-  });
+  currentPage = signal(0);
 
   hasActiveFilters = computed(() =>
     !!this.searchTerm() || !!this.dateFrom() || !!this.dateTo()
   );
 
   async ngOnInit() {
-    try {
-      const data = await this.entriesService.getAll();
-      this.entries.set(data);
-    } catch (err: any) {
-      this.snackBar.open('Erro ao carregar relatos', 'Fechar', { duration: 4000 });
-    } finally {
-      this.loading.set(false);
-    }
-
+    await this.loadPage();
     this.subscribeRealtime();
   }
 
   ngOnDestroy() {
     if (this.realtimeChannel) {
       this.supabase.client.removeChannel(this.realtimeChannel);
+    }
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
+  }
+
+  private async loadPage() {
+    this.loading.set(true);
+    try {
+      const result = await this.entriesService.search(
+        this.currentPage(),
+        this.PAGE_SIZE,
+        this.searchTerm(),
+        this.dateFrom(),
+        this.dateTo()
+      );
+      this.entries.set(result.data);
+      this.totalCount.set(result.count);
+    } catch (err: any) {
+      this.snackBar.open('Erro ao carregar relatos', 'Fechar', { duration: 4000 });
+    } finally {
+      this.loading.set(false);
     }
   }
 
@@ -107,34 +95,44 @@ export class EntriesListComponent implements OnInit, OnDestroy {
       .on(
         'postgres_changes' as any,
         { event: '*', schema: 'public', table: 'entries' },
-        async (payload: any) => {
-          if (payload.eventType === 'INSERT') {
-            // Busca o relato completo com emotion e photos
-            const entry = await this.entriesService.getById(payload.new.id);
-            this.entries.update(list => [entry, ...list]);
-          } else if (payload.eventType === 'UPDATE') {
-            const entry = await this.entriesService.getById(payload.new.id);
-            this.entries.update(list =>
-              list.map(e => e.id === entry.id ? entry : e)
-            );
-          } else if (payload.eventType === 'DELETE') {
-            this.entries.update(list =>
-              list.filter(e => e.id !== payload.old.id)
-            );
-          }
-        }
+        async () => await this.loadPage()
       )
       .subscribe();
   }
 
-  onSearch(term: string) { this.searchTerm.set(term); }
-  onDateFrom(date: Date | null) { this.dateFrom.set(date); }
-  onDateTo(date: Date | null) { this.dateTo.set(date); }
+  onSearch(term: string) {
+    this.searchTerm.set(term);
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => {
+      this.currentPage.set(0);
+      this.loadPage();
+    }, 400);
+  }
+
+  onDateFrom(date: Date | null) {
+    this.dateFrom.set(date);
+    this.currentPage.set(0);
+    this.loadPage();
+  }
+
+  onDateTo(date: Date | null) {
+    this.dateTo.set(date);
+    this.currentPage.set(0);
+    this.loadPage();
+  }
 
   clearFilters() {
     this.searchTerm.set('');
     this.dateFrom.set(null);
     this.dateTo.set(null);
+    this.currentPage.set(0);
+    this.loadPage();
+  }
+
+  onPageChange(event: PageEvent) {
+    this.currentPage.set(event.pageIndex);
+    this.loadPage();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   newEntry() { this.router.navigate(['/entries/new']); }
@@ -145,8 +143,8 @@ export class EntriesListComponent implements OnInit, OnDestroy {
     if (!confirm('Excluir este relato?')) return;
     try {
       await this.entriesService.delete(entry.id);
-      this.entries.update(list => list.filter(e => e.id !== entry.id));
       this.snackBar.open('Relato excluído', '', { duration: 3000 });
+      await this.loadPage();
     } catch (err: any) {
       this.snackBar.open('Erro ao excluir', 'Fechar', { duration: 4000 });
     }
@@ -161,18 +159,10 @@ export class EntriesListComponent implements OnInit, OnDestroy {
     return text.length > 140 ? text.slice(0, 140) + '…' : text;
   }
 
-  getFirstImage(content: string): string | null {
-    console.log(content)
+  getImages(content: string): HTMLImageElement[] | null {
     const div = document.createElement('div');
     div.innerHTML = content;
-    const img = div.querySelector('img');
-    return img ? img.src : null;
+    const imgs = div.querySelectorAll('img');
+    return imgs.length > 0 ? Array.from(imgs) : null;
   }
-
-  getImages(content: string): HTMLImageElement[] | null {
-  const div = document.createElement('div');
-  div.innerHTML = content;  
-  const imgs = div.querySelectorAll('img');
-  return imgs.length > 0 ? Array.from(imgs) : null;
-}
 }
