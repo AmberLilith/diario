@@ -57,6 +57,7 @@
   gap: 8px;  
   flex-wrap: wrap;
   align-items: center;
+  padding: 10px;
 }
 
 .card-photo { height: 30px; width: 30px; object-fit: cover; opacity: 0.9; border-radius: 4px;}
@@ -67,7 +68,32 @@
   align-items: flex-start;
   margin-bottom: 8px;
 }
-.card-meta { display: flex; flex-direction: column; gap: 4px; }
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.card-photos-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.container-photos {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.card-photo {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
 .emotion-badge {
   display: inline-flex;
   align-items: center;

@@ -1,0 +1,128 @@
+
+    <div class="dialog-container">
+      <h2 mat-dialog-title>Como você está se sentindo?</h2>
+
+      <mat-dialog-content>
+
+        @if (emotions().length > 0) {
+          <div class="emotions-grid">
+            @for (emotion of emotions(); track emotion.id) {
+              <div
+                class="emotion-item"
+                [class.selected]="selectedId() === emotion.id"
+                [style.border-color]="selectedId() === emotion.id ? emotion.color : 'transparent'"
+                [style.background]="selectedId() === emotion.id ? emotion.color + '33' : 'transparent'">
+
+                <button
+                  type="button"
+                  class="emotion-btn"
+                  (click)="select(emotion)"
+                  [matTooltip]="emotion.label">
+                  <span class="emoji">{{ emotion.emoji }}</span>
+                  <span class="label">{{ emotion.label }}</span>
+                </button>
+
+                <div class="emotion-actions">
+                  <button
+                    type="button"
+                    mat-icon-button
+                    class="action-btn"
+                    (click)="startEdit(emotion)"
+                    matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    class="action-btn delete-btn"
+                    (click)="deleteEmotion(emotion)"
+                    matTooltip="Excluir">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-hint">Você ainda não tem humores. Crie o primeiro abaixo!</p>
+        }
+
+        <mat-divider style="margin: 16px 0"></mat-divider>
+
+        <div class="new-emotion-section">
+          <p class="section-title">{{ editingId() ? 'Editar humor' : 'Criar novo humor' }}</p>
+
+          <form [formGroup]="newForm" (ngSubmit)="saveEmotion()" class="new-form">
+
+            <div class="field-group">
+              <label class="field-label">Emoji</label>
+              <div class="emoji-grid">
+                @for (e of presetEmojis; track e) {
+                  <button
+                    type="button"
+                    class="emoji-pick-btn"
+                    [class.selected]="newForm.get('emoji')?.value === e"
+                    (click)="newForm.get('emoji')?.setValue(e)">
+                    {{ e }}
+                  </button>
+                }
+              </div>
+              <mat-form-field appearance="outline" style="width:80px; margin-top:8px">
+                <mat-label>Outro</mat-label>
+                <input matInput formControlName="emoji" maxlength="2">
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome do humor</mat-label>
+              <input matInput formControlName="label" placeholder="Ex: Grato, Ansioso...">
+            </mat-form-field>
+
+            <div class="field-group">
+              <label class="field-label">Cor</label>
+              <div class="color-grid">
+                @for (c of presetColors; track c) {
+                  <button
+                    type="button"
+                    class="color-btn"
+                    [style.background]="c"
+                    [class.selected]="newForm.get('color')?.value === c"
+                    (click)="newForm.get('color')?.setValue(c)">
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="form-buttons">
+              @if (editingId()) {
+                <button type="button" mat-stroked-button (click)="cancelEdit()">
+                  Cancelar edição
+                </button>
+              }
+              <button
+                type="submit"
+                mat-stroked-button
+                [disabled]="newForm.invalid || saving()">
+                @if (saving()) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <mat-icon>{{ editingId() ? 'save' : 'add' }}</mat-icon>
+                  {{ editingId() ? 'Salvar' : 'Criar humor' }}
+                }
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end">
+        <button mat-button (click)="cancel()">Cancelar</button>
+        <button mat-flat-button color="primary" (click)="confirm()" [disabled]="!selectedId()">
+          Confirmar
+        </button>
+      </mat-dialog-actions>
+    </div>
+  

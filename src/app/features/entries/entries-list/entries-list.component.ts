@@ -20,6 +20,7 @@ import { Entry } from '../../../core/models';
 import { AuthService } from '../../../core/services/auth.service';
 import { EntriesService } from '../../../core/services/entries.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-entries-list',
@@ -40,6 +41,7 @@ export class EntriesListComponent implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
+  theme = inject(ThemeService);
 
   private realtimeChannel: any = null;
   private searchDebounce: any = null;

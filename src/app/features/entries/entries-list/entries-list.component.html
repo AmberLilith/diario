@@ -5,9 +5,9 @@
       <h1>Diário</h1>
       <p class="subtitle">
         {{ entries().length }}
-        relato{{ entries().length !== 1 ? 's' : '' }}
+        relato{{ entries().length !== 1 ? 's' : '' }} - Pag. {{currentPage()+1}}
         @if (hasActiveFilters()) {
-          encontrado{{ entries().length !== 1 ? 's' : '' }}
+        encontrado{{ entries().length !== 1 ? 's' : '' }}
         }
       </p>
     </div>
@@ -19,6 +19,9 @@
         <mat-icon>add</mat-icon>
         Novo relato
       </button>
+      <button mat-icon-button (click)="theme.toggle()" matTooltip="Alternar tema">
+        <mat-icon>{{ theme.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
     </div>
   </div>
 
@@ -28,25 +31,17 @@
     <mat-form-field appearance="outline" class="search-field">
       <mat-label>Buscar</mat-label>
       <mat-icon matPrefix>search</mat-icon>
-      <input
-        matInput
-        [ngModel]="searchTerm()"
-        (ngModelChange)="onSearch($event)"
-        placeholder="Texto ou humor...">
+      <input matInput [ngModel]="searchTerm()" (ngModelChange)="onSearch($event)" placeholder="Texto ou humor...">
       @if (searchTerm()) {
-        <button matSuffix mat-icon-button (click)="onSearch('')">
-          <mat-icon>close</mat-icon>
-        </button>
+      <button matSuffix mat-icon-button (click)="onSearch('')">
+        <mat-icon>close</mat-icon>
+      </button>
       }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="date-field">
       <mat-label>De</mat-label>
-      <input
-        matInput
-        [matDatepicker]="pickerFrom"
-        [ngModel]="dateFrom()"
-        (ngModelChange)="onDateFrom($event)"
+      <input matInput [matDatepicker]="pickerFrom" [ngModel]="dateFrom()" (ngModelChange)="onDateFrom($event)"
         placeholder="Data inicial">
       <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
       <mat-datepicker #pickerFrom></mat-datepicker>
@@ -54,115 +49,105 @@
 
     <mat-form-field appearance="outline" class="date-field">
       <mat-label>Até</mat-label>
-      <input
-        matInput
-        [matDatepicker]="pickerTo"
-        [ngModel]="dateTo()"
-        (ngModelChange)="onDateTo($event)"
+      <input matInput [matDatepicker]="pickerTo" [ngModel]="dateTo()" (ngModelChange)="onDateTo($event)"
         placeholder="Data final">
       <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
       <mat-datepicker #pickerTo></mat-datepicker>
     </mat-form-field>
 
     @if (hasActiveFilters()) {
-      <button mat-stroked-button (click)="clearFilters()" class="clear-btn">
-        <mat-icon>filter_alt_off</mat-icon>
-        Limpar filtros
-      </button>
+    <button mat-stroked-button (click)="clearFilters()" class="clear-btn">
+      <mat-icon>filter_alt_off</mat-icon>
+      Limpar filtros
+    </button>
     }
 
   </div>
 
   @if (loading()) {
-    <div class="loading-state">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
+  <div class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
   } @else if (entries().length === 0) {
-    <div class="empty-state">
-      <mat-icon class="empty-icon">menu_book</mat-icon>
-      <h2>Seu diário está vazio</h2>
-      <p>Registre sua primeira vivência</p>
-      <button mat-flat-button color="primary" (click)="newEntry()">
-        <mat-icon>add</mat-icon>
-        Criar primeiro relato
-      </button>
-    </div>
+  <div class="empty-state">
+    <mat-icon class="empty-icon">menu_book</mat-icon>
+    <h2>Seu diário está vazio</h2>
+    <p>Registre sua primeira vivência</p>
+    <button mat-flat-button color="primary" (click)="newEntry()">
+      <mat-icon>add</mat-icon>
+      Criar primeiro relato
+    </button>
+  </div>
   } @else if (entries().length === 0) {
-    <div class="empty-state">
-      <mat-icon class="empty-icon">search_off</mat-icon>
-      <h2>Nenhum resultado</h2>
-      <p>Tente outros termos ou período</p>
-      <button mat-stroked-button (click)="clearFilters()">
-        Limpar filtros
-      </button>
-    </div>
+  <div class="empty-state">
+    <mat-icon class="empty-icon">search_off</mat-icon>
+    <h2>Nenhum resultado</h2>
+    <p>Tente outros termos ou período</p>
+    <button mat-stroked-button (click)="clearFilters()">
+      Limpar filtros
+    </button>
+  </div>
   } @else {
-    <div class="entries-grid">
-      @for (entry of entries(); track entry.id) {
-        <mat-card class="entry-card" (click)="viewEntry(entry)">
+  @if (totalCount() > PAGE_SIZE) {
+  <mat-paginator [length]="totalCount()" [pageSize]="PAGE_SIZE" [pageIndex]="currentPage()" [hidePageSize]="true"
+    (page)="onPageChange($event)" class="paginator">
+  </mat-paginator>
+  }
+  <div class="entries-grid">
+    @for (entry of entries(); track entry.id) {
+    <mat-card class="entry-card" (click)="viewEntry(entry)">      
 
-          @if (getImages(entry.content)) {
-            <div class="container-photos">
-            @for(img of getImages(entry.content); track img.src){
-              <img
-              mat-card-image
-              [src]="img.src"
-              [alt]="entry.created_at"
-              class="card-photo">
-            }
-            </div>
-          }
+      <mat-card-content>
+  <!-- Linha 1: data e humor -->
+  <div class="card-meta">
+    <span class="entry-date">
+      {{ entry.created_at | date:'dd/MM/yyyy - HH:mm' }}
+    </span>
+    @if (entry.emotion) {
+      <span class="emotion-badge"
+        [style.background]="entry.emotion.color + '22'"
+        [style.border-color]="entry.emotion.color"
+        [style.color]="entry.emotion.color">
+        {{ entry.emotion.emoji }} {{ entry.emotion.label }}
+      </span>
+    }    
+  </div>
 
-          <mat-card-content>
-            <div class="card-header">
-              <div class="card-meta">
-                @if (entry.emotion) {
-                  <span
-                    class="emotion-badge"
-                    [style.background]="entry.emotion.color + '22'"
-                    [style.border-color]="entry.emotion.color"
-                    [style.color]="entry.emotion.color">
-                    {{ entry.emotion.emoji }} {{ entry.emotion.label }}
-                  </span>
-                }
-                <span class="entry-date">
-                  {{ entry.created_at | date:'dd/MM/yyyy - HH:mm' }}
-                </span>
-              </div>
-
-              <button
-                mat-icon-button
-                [matMenuTriggerFor]="menu"
-                (click)="$event.stopPropagation()">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #menu>
-                <button mat-menu-item (click)="editEntry(entry)">
-                  <mat-icon>edit</mat-icon> Editar
-                </button>
-                <button mat-menu-item (click)="deleteEntry(entry)">
-                  <mat-icon color="warn">delete</mat-icon>
-                  <span style="color: var(--mat-sys-error)">Excluir</span>
-                </button>
-              </mat-menu>
-            </div>
-
-            <p class="entry-preview" [innerHTML]="getPreview(entry.content)"></p>
-          </mat-card-content>
-
-        </mat-card>
+  <!-- Linha 2: fotos + menu -->
+  <div class="card-photos-row">
+    <div class="container-photos">
+      @if (getImages(entry.content)) {
+        @for (img of getImages(entry.content); track img.src) {
+          <img [src]="img.src" [alt]="entry.created_at" class="card-photo">
+        }
       }
     </div>
-    @if (totalCount() > PAGE_SIZE) {
-  <mat-paginator
-    [length]="totalCount()"
-    [pageSize]="PAGE_SIZE"
-    [pageIndex]="currentPage()"
-    [hidePageSize]="true"
-    (page)="onPageChange($event)"
-    class="paginator">
+    <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #menu>
+      <button mat-menu-item (click)="editEntry(entry)">
+        <mat-icon>edit</mat-icon> Editar
+      </button>
+      <button mat-menu-item (click)="deleteEntry(entry)">
+        <mat-icon color="warn">delete</mat-icon>
+        <span style="color: var(--mat-sys-error)">Excluir</span>
+      </button>
+    </mat-menu>
+  </div>
+
+  <!-- Linha 3: preview -->
+  <p class="entry-preview" [innerHTML]="getPreview(entry.content)"></p>
+</mat-card-content>
+
+    </mat-card>
+    }
+  </div>
+  @if (totalCount() > PAGE_SIZE) {
+  <mat-paginator [length]="totalCount()" [pageSize]="PAGE_SIZE" [pageIndex]="currentPage()" [hidePageSize]="true"
+    (page)="onPageChange($event)" class="paginator">
   </mat-paginator>
-}
+  }
   }
 
 </div>
