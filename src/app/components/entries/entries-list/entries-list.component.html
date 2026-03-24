@@ -31,7 +31,7 @@
     <mat-form-field appearance="outline" class="search-field">
       <mat-label>Buscar</mat-label>
       <mat-icon matPrefix>search</mat-icon>
-      <input matInput [ngModel]="searchTerm()" (ngModelChange)="onSearch($event)" placeholder="Texto ou humor...">
+      <input id="input-search-term" matInput [ngModel]="searchTerm()" (ngModelChange)="onSearch($event)" placeholder="Texto ou humor...">
       @if (searchTerm()) {
       <button matSuffix mat-icon-button (click)="onSearch('')">
         <mat-icon>close</mat-icon>
@@ -41,7 +41,7 @@
 
     <mat-form-field appearance="outline" class="date-field">
       <mat-label>De</mat-label>
-      <input matInput [matDatepicker]="pickerFrom" [ngModel]="dateFrom()" (ngModelChange)="onDateFrom($event)"
+      <input id="input-start-date" matInput [matDatepicker]="pickerFrom" [ngModel]="dateFrom()" (ngModelChange)="onDateFrom($event)"
         placeholder="Data inicial">
       <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
       <mat-datepicker #pickerFrom></mat-datepicker>
@@ -49,7 +49,7 @@
 
     <mat-form-field appearance="outline" class="date-field">
       <mat-label>Até</mat-label>
-      <input matInput [matDatepicker]="pickerTo" [ngModel]="dateTo()" (ngModelChange)="onDateTo($event)"
+      <input id="input-end-date" matInput [matDatepicker]="pickerTo" [ngModel]="dateTo()" (ngModelChange)="onDateTo($event)"
         placeholder="Data final">
       <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
       <mat-datepicker #pickerTo></mat-datepicker>
@@ -68,8 +68,8 @@
   <div class="loading-state">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
-  } @else if (entries().length === 0) {
-  <div class="empty-state">
+  } @else if (entries().length === 0 && !hasActiveFilters()) {
+  <div id="div-empty-diary" class="empty-state">
     <mat-icon class="empty-icon">menu_book</mat-icon>
     <h2>Seu diário está vazio</h2>
     <p>Registre sua primeira vivência</p>
@@ -78,8 +78,8 @@
       Criar primeiro relato
     </button>
   </div>
-  } @else if (entries().length === 0) {
-  <div class="empty-state">
+  } @else if (entries().length === 0 && hasActiveFilters()) {
+  <div id="div-no-result" class="empty-state">
     <mat-icon class="empty-icon">search_off</mat-icon>
     <h2>Nenhum resultado</h2>
     <p>Tente outros termos ou período</p>
@@ -93,7 +93,7 @@
     (page)="onPageChange($event)" class="paginator">
   </mat-paginator>
   }
-  <div class="entries-grid">
+  <div id="div-show-entries" class="entries-grid">
     @for (entry of entries(); track entry.id) {
     <mat-card class="entry-card" (click)="viewEntry(entry)">      
 

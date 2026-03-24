@@ -9,7 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { Entry } from '../../../core/models';
-import { EntriesService } from '../../../core/services/entries.service';
+import { EntriesService } from '../../../core/services/entries-service/entries.service';
 import { LightboxComponent } from '../../../shared/components/lightbox/lightbox.component';
 
 @Component({

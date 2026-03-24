@@ -14,7 +14,7 @@ import { QuillModule } from 'ngx-quill';
 import { Emotion, Entry } from '../../../core/models';
 import { AuthService } from '../../../core/services/auth.service';
 import { EmotionsService } from '../../../core/services/emotions.service';
-import { EntriesService } from '../../../core/services/entries.service';
+import { EntriesService } from '../../../core/services/entries-service/entries.service';
 import { HelperService } from '../../../services/helper/helper.service';
 import { LightboxComponent } from '../../../shared/components/lightbox/lightbox.component';
 import { EmotionPickerDialogComponent } from '../../emotions/emotion-picker-dialog/emotion-picker-dialog.component';

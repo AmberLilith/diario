@@ -18,8 +18,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Entry } from '../../../core/models';
 import { AuthService } from '../../../core/services/auth.service';
-import { EntriesService } from '../../../core/services/entries.service';
-import { SupabaseService } from '../../../core/services/supabase.service';
+import { EntriesService } from '../../../core/services/entries-service/entries.service';
+import { SupabaseService } from '../../../core/services/supabase-service/supabase.service';
 import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({

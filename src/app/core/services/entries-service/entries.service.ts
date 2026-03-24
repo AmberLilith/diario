@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Entry, EntryForm } from '../models';
-import { AuthService } from './auth.service';
-import { SupabaseService } from './supabase.service';
+import { Entry, EntryForm } from '../../models';
+import { AuthService } from '../auth.service';
+import { SupabaseService } from '../supabase-service/supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class EntriesService {
