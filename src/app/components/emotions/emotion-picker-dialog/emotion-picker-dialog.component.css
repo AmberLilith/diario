@@ -1,0 +1,167 @@
+    .dialog-container {
+        min-width: 400px;
+    }
+
+    .emotions-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .emotion-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 2px solid transparent;
+        border-radius: 12px;
+        transition: all 0.15s;
+        min-width: 72px;
+        overflow: hidden;
+    }
+
+    .emotion-item:hover .emotion-actions {
+        opacity: 1;
+    }
+
+    .emotion-item.selected {
+        transform: scale(1.05);
+    }
+
+    .emotion-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 12px 4px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .emotion-btn .emoji {
+        font-size: 24px;
+    }
+
+    .emotion-btn .label {
+        font-size: 11px;
+        margin-top: 2px;
+        color: var(--mat-sys-on-surface);
+    }
+
+    .emotion-actions {
+        display: flex;
+        gap: 0;
+        opacity: 0;
+        transition: opacity 0.15s;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .action-btn {
+        width: 24px !important;
+        height: 24px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .action-btn ::ng-deep .mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+    }
+
+    .delete-btn {
+        color: var(--mat-sys-error) !important;
+    }
+
+    .empty-hint {
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 14px;
+    }
+
+    .section-title {
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 12px;
+    }
+
+    .new-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .full-width {
+        width: 100%;
+    }
+
+    .field-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--mat-sys-on-surface-variant);
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .emoji-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .emoji-pick-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        background: transparent;
+        transition: all 0.1s;
+    }
+
+    .emoji-pick-btn:hover {
+        background: var(--mat-sys-surface-variant);
+    }
+
+    .emoji-pick-btn.selected {
+        border-color: var(--mat-sys-primary);
+        background: var(--mat-sys-primary-container);
+    }
+
+    .color-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .color-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .color-btn:hover {
+        transform: scale(1.2);
+    }
+
+    .color-btn.selected {
+        border-color: var(--mat-sys-on-surface);
+        transform: scale(1.2);
+    }
+
+    .form-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    mat-spinner {
+        display: inline-block;
+    }

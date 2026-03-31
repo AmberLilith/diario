@@ -5,7 +5,7 @@ export const routes: Routes = [
   {
     path: 'auth',
     loadChildren: () =>
-      import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES),
+      import('./components/auth/auth.routes').then(m => m.AUTH_ROUTES),
   },
   {
     path: 'entries',
@@ -14,25 +14,25 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./features/entries/entries-list/entries-list.component')
+          import('./components/entries/entries-list/entries-list.component')
             .then(m => m.EntriesListComponent),
       },
       {
         path: 'new',
         loadComponent: () =>
-          import('./features/entries/entry-form/entry-form.component')
+          import('./components/entries/entry-form/entry-form.component')
             .then(m => m.EntryFormComponent),
       },
       {
         path: ':id/edit',
         loadComponent: () =>
-          import('./features/entries/entry-form/entry-form.component')
+          import('./components/entries/entry-form/entry-form.component')
             .then(m => m.EntryFormComponent),
       },
       {
         path: ':id',
         loadComponent: () =>
-          import('./features/entries/entry-detail/entry-detail.component')
+          import('./components/entries/entry-detail/entry-detail.component')
             .then(m => m.EntryDetailComponent),
       },
     ],

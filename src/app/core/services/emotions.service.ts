@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
-import { SupabaseService } from './supabase.service';
-import { AuthService } from './auth.service';
 import { Emotion, EmotionForm } from '../models';
+import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase-service/supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class EmotionsService {

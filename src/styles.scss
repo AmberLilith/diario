@@ -1,0 +1,101 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$primary: mat.define-palette(mat.$deep-purple-palette);
+$accent: mat.define-palette(mat.$amber-palette);
+$warn: mat.define-palette(mat.$red-palette);
+
+$light-theme: mat.define-light-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+    warn: $warn,
+  )
+));
+
+$dark-theme: mat.define-dark-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+    warn: $warn,
+  )
+));
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+// Tema claro
+html {
+  @include mat.all-component-themes($light-theme);
+  background-color: #ffffff;
+  color: #000000;
+}
+
+// Tema escuro
+html[data-theme="dark"] {
+  @include mat.all-component-colors($dark-theme);
+  background-color: #121212;
+  color: #ffffff;
+
+  // Fundo das páginas e containers
+  body {
+    background-color: #121212;
+  }
+
+  input{
+    color: white;
+  }
+
+  // Editor Quill no tema escuro
+  .ql-container,
+  .ql-editor {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+  }
+
+  // Cards
+  .mat-mdc-card {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+  }
+
+  // Inputs e form fields
+  .mat-mdc-form-field {
+    color: #ffffff !important;
+  }
+
+  // Dialogs
+  .mat-mdc-dialog-container {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+  }
+}
+
+// Respeita preferência do sistema
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    @include mat.all-component-colors($dark-theme);
+    background-color: #121212;
+    color: #ffffff;
+
+    .ql-container,
+    .ql-editor {
+      background-color: #1e1e1e !important;
+      color: #ffffff !important;
+    }
+
+    .mat-mdc-card {
+      background-color: #1e1e1e !important;
+      color: #ffffff !important;
+    }
+
+    .mat-mdc-dialog-container {
+      background-color: #1e1e1e !important;
+      color: #ffffff !important;
+    }
+  }
+}

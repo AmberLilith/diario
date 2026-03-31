@@ -1,0 +1,81 @@
+<div class="entry-form-container">
+    <div class="form-header">
+        <button mat-icon-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>{{ isEdit ? 'Editar relato' : 'Novo relato' }}</h1>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="entry-form">
+        
+
+        @if(isEdit){
+            <h3>{{entryFormattedDate}}</h3>
+        }
+
+        <!-- Editor Quill -->
+        <div class="editor-section">
+            <span class="section-label">O que aconteceu?</span>
+
+            <!-- Toolbar customizada -->
+            <div class="editor-toolbar">
+                <button type="button" mat-icon-button (click)="format('bold')" matTooltip="Negrito">
+                    <mat-icon>format_bold</mat-icon>
+                </button>
+                <button type="button" mat-icon-button (click)="format('italic')" matTooltip="Itálico">
+                    <mat-icon>format_italic</mat-icon>
+                </button>
+                <button type="button" mat-icon-button (click)="format('underline')" matTooltip="Sublinhado">
+                    <mat-icon>format_underlined</mat-icon>
+                </button>
+                <div class="toolbar-divider"></div>
+                <button type="button" mat-icon-button (click)="insertBulletList()" matTooltip="Lista">
+                    <mat-icon>format_list_bulleted</mat-icon>
+                </button>
+                <div class="toolbar-divider"></div>
+                <button type="button" mat-icon-button (click)="photoInput.click()" matTooltip="Inserir foto">
+                    <mat-icon>add_photo_alternate</mat-icon>
+                </button>
+            </div>
+
+            <quill-editor #quillEditor formControlName="content" [modules]="quillModules"
+                placeholder="Conte sua vivência..." class="quill-editor" (onEditorCreated)="onEditorCreated($event)" (onContentChanged)="helper.getAllPhotosPaths(form.get('content')!.value)">
+            </quill-editor>
+
+            <input #photoInput type="file" accept="image/*" multiple hidden (change)="onPhotoSelected($event)">
+        </div>
+
+        <!-- Humor -->
+        <div class="emotion-section">
+            <span class="section-label">Como você estava?</span>
+            <div class="emotion-row">
+                @if (selectedEmotion()) {
+                <div class="emotion-chip" [style.background]="selectedEmotion()!.color + '33'"
+                    [style.border-color]="selectedEmotion()!.color">
+                    <span class="emotion-emoji">{{ selectedEmotion()!.emoji }}</span>
+                    <span>{{ selectedEmotion()!.label }}</span>
+                    <button type="button" class="remove-btn" (click)="clearEmotion()">✕</button>
+                </div>
+                } @else {
+                <span class="emotion-placeholder">Nenhum humor selecionado</span>
+                }
+                <button type="button" mat-stroked-button (click)="openEmotionPicker()">
+                    <mat-icon>mood</mat-icon>
+                    {{ selectedEmotion() ? 'Mudar humor' : 'Adicionar humor' }}
+                </button>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" mat-stroked-button (click)="goBack()">Cancelar</button>
+            <button type="submit" mat-flat-button color="primary" [disabled]="loading() || form.invalid">
+                @if (loading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                {{ isEdit ? 'Salvar alterações' : 'Salvar relato' }}
+                }
+            </button>
+        </div>
+
+    </form>
+</div>
