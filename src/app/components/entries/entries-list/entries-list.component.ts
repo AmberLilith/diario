@@ -36,7 +36,7 @@ import { ThemeService } from '../../../core/services/theme.service';
   styleUrl: './entries-list.component.css'
 })
 export class EntriesListComponent implements OnInit, OnDestroy {
-  private entriesService = inject(EntriesService);
+   entriesService = inject(EntriesService);
   private authService = inject(AuthService);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
@@ -85,7 +85,7 @@ export class EntriesListComponent implements OnInit, OnDestroy {
       this.entries.set(result.data);
       this.totalCount.set(result.count);
     } catch (err: any) {
-      this.snackBar.open('Erro ao carregar relatos', 'Fechar', { duration: 4000 });
+      this.snackBar.open('Erro ao carregar relatos' + err.message, 'Fechar', { duration: 4000 });
     } finally {
       this.loading.set(false);
     }

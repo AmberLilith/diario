@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Entry, EntryForm } from '../../models';
 import { AuthService } from '../auth.service';
+import { CryptoService } from '../crypto-service';
 import { SupabaseService } from '../supabase-service/supabase.service';
 
 @Injectable({ providedIn: 'root' })
@@ -9,8 +10,9 @@ export class EntriesService {
 
   constructor(
     private supabase: SupabaseService,
-    private auth: AuthService
-  ) {}
+    private auth: AuthService,
+    private cryptoService: CryptoService
+  ) { }
 
   async search(
     page: number = 0,
@@ -46,6 +48,13 @@ export class EntriesService {
 
     const { data, error, count } = await query;
     if (error) throw error;
+    await Promise.all(
+  (data as Entry[]).map(async entry => {
+    entry.content = await this.cryptoService.decrypt(entry.content);
+    entry.content_text = await this.cryptoService.decrypt(entry.content_text!);
+    return entry;
+  })
+);
     return { data: data as Entry[], count: count ?? 0 };
   }
 
@@ -57,18 +66,24 @@ export class EntriesService {
       .single();
 
     if (error) throw error;
+    const entry = data as Entry;
+    entry.content = await this.cryptoService.decrypt(entry.content);
+    entry.content_text = await this.cryptoService.decrypt(entry.content_text!);
     return data as Entry;
   }
 
   async create(form: EntryForm): Promise<Entry> {
     const userId = this.auth.getUserId();
+    const encryptedContent = await this.cryptoService.encrypt(form.content);
+    const extractedText = this.extractText(form.content);
+    const encryptedContentText = await this.cryptoService.encrypt(extractedText);
 
     const { data, error } = await this.supabase.client
       .from('entries')
       .insert({
         user_id: userId,
-        content: form.content,
-        content_text: this.extractText(form.content),
+        content: encryptedContent,
+        content_text: encryptedContentText,
         emotion_id: form.emotion_id || null,
         photos_paths: form.photos_paths
       })
@@ -80,11 +95,14 @@ export class EntriesService {
   }
 
   async update(id: string, form: EntryForm): Promise<Entry> {
+    const encryptedContent = await this.cryptoService.encrypt(form.content);
+    const extractedText = this.extractText(form.content);
+    const encryptedContentText = await this.cryptoService.encrypt(extractedText);
     const { error } = await this.supabase.client
       .from('entries')
       .update({
-        content: form.content,
-        content_text: this.extractText(form.content),
+        content: encryptedContent,
+        content_text: encryptedContentText,
         emotion_id: form.emotion_id || null,
         photos_paths: form.photos_paths
       })
@@ -157,4 +175,60 @@ export class EntriesService {
     return (div.textContent || div.innerText || '')
       .replace(/\s+/g, ' ').trim().toLowerCase();
   }
+
+/* async encryptAllDB() {
+  const confirmacao = confirm("Isso irá reprocessar TODOS os registros. Deseja continuar?");
+  if (!confirmacao) return;
+
+  try {
+    const { data: entries, error } = await this.supabase.client
+      .from('entries')
+      .select('*');
+
+    if (error) throw error;
+
+    if (!entries || entries.length === 0) {
+      alert('Nenhum registro encontrado.');
+      return;
+    }
+
+    console.log(`Migrando ${entries.length} registros...`);
+
+    let atualizados = 0;
+
+    for (const entry of entries) {
+      let content: string;
+      let content_text: string;
+      try {
+        content = await this.cryptoService.decrypt(entry.content);
+      } catch {
+        content = entry.content;
+      }
+
+      try {
+        content_text = await this.cryptoService.decrypt(entry.content_text);
+      } catch {
+        content_text = entry.content_text;
+      }
+
+      const encryptedContent = await this.cryptoService.encrypt(content);
+      const encryptedContentText = await this.cryptoService.encrypt(content_text);
+
+      await this.supabase.client
+        .from('entries')
+        .update({
+          content: encryptedContent,
+          content_text: encryptedContentText
+        })
+        .eq('id', entry.id);
+
+      atualizados++;
+    }
+
+    alert(`Migração concluída! ${atualizados} registros atualizados.`);
+  } catch (err) {
+    console.error(err);
+    alert('Erro na migração.');
+  }
+} */
 }
