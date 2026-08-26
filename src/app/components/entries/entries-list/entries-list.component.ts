@@ -36,7 +36,7 @@ import { ThemeService } from '../../../core/services/theme.service';
   styleUrl: './entries-list.component.css'
 })
 export class EntriesListComponent implements OnInit, OnDestroy {
-   entriesService = inject(EntriesService);
+  entriesService = inject(EntriesService);
   private authService = inject(AuthService);
   private supabase = inject(SupabaseService);
   private router = inject(Router);
@@ -45,6 +45,7 @@ export class EntriesListComponent implements OnInit, OnDestroy {
 
   private realtimeChannel: any = null;
   private searchDebounce: any = null;
+  private readonly FILTER_STORAGE_KEY = 'diario.entries-list.filters';
 
   readonly PAGE_SIZE = 6;
 
@@ -61,6 +62,7 @@ export class EntriesListComponent implements OnInit, OnDestroy {
   );
 
   async ngOnInit() {
+    this.restoreFilterState();
     await this.loadPage();
     this.subscribeRealtime();
   }
@@ -70,6 +72,38 @@ export class EntriesListComponent implements OnInit, OnDestroy {
       this.supabase.client.removeChannel(this.realtimeChannel);
     }
     if (this.searchDebounce) clearTimeout(this.searchDebounce);
+  }
+
+  private restoreFilterState() {
+    const saved = sessionStorage.getItem(this.FILTER_STORAGE_KEY);
+    if (!saved) return;
+
+    try {
+      const state = JSON.parse(saved);
+      const restoredDateFrom = state.dateFrom ? new Date(state.dateFrom) : null;
+      const restoredDateTo = state.dateTo ? new Date(state.dateTo) : null;
+
+      this.searchTerm.set(typeof state.searchTerm === 'string' ? state.searchTerm : '');
+      this.dateFrom.set(restoredDateFrom && !isNaN(restoredDateFrom.getTime()) ? restoredDateFrom : null);
+      this.dateTo.set(restoredDateTo && !isNaN(restoredDateTo.getTime()) ? restoredDateTo : null);
+      this.currentPage.set(Number.isInteger(state.currentPage) && state.currentPage >= 0 ? state.currentPage : 0);
+    } catch {
+      sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
+    }
+  }
+
+  private saveFilterState() {
+    if (!this.hasActiveFilters()) {
+      sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
+      return;
+    }
+
+    sessionStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify({
+      searchTerm: this.searchTerm(),
+      dateFrom: this.dateFrom()?.toISOString() ?? null,
+      dateTo: this.dateTo()?.toISOString() ?? null,
+      currentPage: this.currentPage()
+    }));
   }
 
   private async loadPage() {
@@ -104,9 +138,11 @@ export class EntriesListComponent implements OnInit, OnDestroy {
 
   onSearch(term: string) {
     this.searchTerm.set(term);
+    this.saveFilterState();
     if (this.searchDebounce) clearTimeout(this.searchDebounce);
     this.searchDebounce = setTimeout(() => {
       this.currentPage.set(0);
+      this.saveFilterState();
       this.loadPage();
     }, 400);
   }
@@ -114,12 +150,14 @@ export class EntriesListComponent implements OnInit, OnDestroy {
   onDateFrom(date: Date | null) {
     this.dateFrom.set(date);
     this.currentPage.set(0);
+    this.saveFilterState();
     this.loadPage();
   }
 
   onDateTo(date: Date | null) {
     this.dateTo.set(date);
     this.currentPage.set(0);
+    this.saveFilterState();
     this.loadPage();
   }
 
@@ -128,11 +166,13 @@ export class EntriesListComponent implements OnInit, OnDestroy {
     this.dateFrom.set(null);
     this.dateTo.set(null);
     this.currentPage.set(0);
+    sessionStorage.removeItem(this.FILTER_STORAGE_KEY);
     this.loadPage();
   }
 
   onPageChange(event: PageEvent) {
     this.currentPage.set(event.pageIndex);
+    this.saveFilterState();
     this.loadPage();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
