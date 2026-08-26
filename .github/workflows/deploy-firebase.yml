@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: firebase-production
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -25,6 +29,22 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Create production environment file
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANONKEY: ${{ secrets.SUPABASE_ANONKEY }}
+          CRYPTO_KEY: ${{ secrets.CRYPTO_KEY }}
+        run: |
+          mkdir -p src/environments
+          cat > src/environments/environment.prod.ts <<EOF
+          export const environment = {
+            production: true,
+            supabaseUrl: '${SUPABASE_URL}',
+            supabaseAnonKey: '${SUPABASE_ANONKEY}',
+            cryptoKey: '${CRYPTO_KEY}'
+          };
+          EOF
 
       - name: Build Angular application
         run: npm run build
