@@ -7,7 +7,6 @@
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="entry-form">
-        
 
         @if(isEdit){
             <h3>{{entryFormattedDate}}</h3>
@@ -33,8 +32,11 @@
                     <mat-icon>format_list_bulleted</mat-icon>
                 </button>
                 <div class="toolbar-divider"></div>
-                <button type="button" mat-icon-button (click)="photoInput.click()" matTooltip="Inserir foto">
+                <button type="button" mat-icon-button (click)="photoInput.click()" matTooltip="Escolher foto">
                     <mat-icon>add_photo_alternate</mat-icon>
+                </button>
+                <button type="button" mat-icon-button (click)="openCamera()" matTooltip="Tirar foto">
+                    <mat-icon>photo_camera</mat-icon>
                 </button>
             </div>
 
@@ -44,6 +46,35 @@
 
             <input #photoInput type="file" accept="image/*" multiple hidden (change)="onPhotoSelected($event)">
         </div>
+
+        @if (cameraOpen()) {
+            <div class="camera-panel">
+                <div class="camera-header">
+                    <span>Tirar foto</span>
+                    <button type="button" mat-icon-button (click)="closeCamera()" aria-label="Fechar câmera">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+
+                @if (cameraStarting()) {
+                    <div class="camera-loading">
+                        <mat-spinner diameter="36"></mat-spinner>
+                        <span>Iniciando câmera...</span>
+                    </div>
+                } @else {
+                    <video #cameraVideo class="camera-video" autoplay playsinline></video>
+                    <div class="camera-actions">
+                        <button type="button" mat-flat-button color="primary" (click)="capturePhoto()">
+                            <mat-icon>camera</mat-icon>
+                            Tirar foto
+                        </button>
+                        <button type="button" mat-stroked-button (click)="closeCamera()">
+                            Cancelar
+                        </button>
+                    </div>
+                }
+            </div>
+        }
 
         <!-- Humor -->
         <div class="emotion-section">
