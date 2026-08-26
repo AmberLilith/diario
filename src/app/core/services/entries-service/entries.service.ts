@@ -21,14 +21,15 @@ export class EntriesService {
     dateFrom?: Date | null,
     dateTo?: Date | null
   ): Promise<{ data: Entry[], count: number }> {
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
+    const hasTextFilter = !!searchTerm?.trim();
+    const normalizedSearchTerm = searchTerm?.trim().toLowerCase() ?? '';
 
+    // Text search cannot be performed by Supabase because content_text is encrypted.
+    // Fetch the records matching the date range, decrypt them, then filter locally.
     let query = this.supabase.client
       .from('entries')
       .select('*, emotion:emotions(*)', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .order('created_at', { ascending: false });
 
     if (dateFrom) {
       const start = new Date(dateFrom);
@@ -42,20 +43,47 @@ export class EntriesService {
       query = query.lte('created_at', end.toISOString());
     }
 
-    if (searchTerm?.trim()) {
-      query = query.ilike('content_text', `%${searchTerm.trim().toLowerCase()}%`);
+    // Without a text filter, keep server-side pagination for the normal listing.
+    if (!hasTextFilter) {
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      await this.decryptEntries(data as Entry[]);
+      return { data: data as Entry[], count: count ?? 0 };
     }
 
-    const { data, error, count } = await query;
+    // With a text filter, fetch all records in the selected date range so that
+    // pagination is applied after filtering the decrypted text.
+    const { data, error } = await query;
     if (error) throw error;
+
+    const entries = data as Entry[];
+    await this.decryptEntries(entries);
+
+    const filteredEntries = entries.filter(entry =>
+      (entry.content_text ?? '').toLowerCase().includes(normalizedSearchTerm)
+    );
+
+    const from = page * pageSize;
+    const paginatedEntries = filteredEntries.slice(from, from + pageSize);
+
+    return {
+      data: paginatedEntries,
+      count: filteredEntries.length
+    };
+  }
+
+  private async decryptEntries(entries: Entry[]): Promise<void> {
     await Promise.all(
-  (data as Entry[]).map(async entry => {
-    entry.content = await this.cryptoService.decrypt(entry.content);
-    entry.content_text = await this.cryptoService.decrypt(entry.content_text!);
-    return entry;
-  })
-);
-    return { data: data as Entry[], count: count ?? 0 };
+      entries.map(async entry => {
+        entry.content = await this.cryptoService.decrypt(entry.content);
+        entry.content_text = await this.cryptoService.decrypt(entry.content_text!);
+      })
+    );
   }
 
   async getById(id: string): Promise<Entry> {
