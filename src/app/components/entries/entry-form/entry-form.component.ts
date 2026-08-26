@@ -55,6 +55,8 @@ export class EntryFormComponent implements OnInit, OnDestroy {
   cameraStarting = signal(false);
   availableCameras = signal<MediaDeviceInfo[]>([]);
   selectedCameraId = signal<string | null>(null);
+  private rearCameraId: string | null = null;
+  private frontCameraId: string | null = null;
 
   private quillInstance: any = null;
   private cameraStream: MediaStream | null = null;
@@ -138,9 +140,28 @@ export class EntryFormComponent implements OnInit, OnDestroy {
     const cameras = devices.filter(device => device.kind === 'videoinput');
     this.availableCameras.set(cameras);
 
-    if (!this.selectedCameraId() && cameras.length) {
-      const rearCamera = cameras.find(camera => /back|rear|environment/i.test(camera.label));
-      this.selectedCameraId.set(rearCamera?.deviceId ?? cameras[0].deviceId);
+    this.rearCameraId = null;
+    this.frontCameraId = null;
+
+    // On browsers that expose labels, identify the front and rear cameras.
+    const rear = cameras.find(camera => /back|rear|environment/i.test(camera.label));
+    const front = cameras.find(camera => /front|user|facetime/i.test(camera.label));
+
+    this.rearCameraId = rear?.deviceId ?? null;
+    this.frontCameraId = front?.deviceId ?? null;
+
+    // Some mobile browsers do not expose useful labels. In that case,
+    // keep the first camera as the rear camera and the last different
+    // camera as the front-camera fallback.
+    if (!this.rearCameraId && cameras.length) {
+      this.rearCameraId = cameras[0].deviceId;
+    }
+    if (!this.frontCameraId && cameras.length > 1) {
+      this.frontCameraId = cameras[cameras.length - 1].deviceId;
+    }
+
+    if (!this.selectedCameraId() && this.rearCameraId) {
+      this.selectedCameraId.set(this.rearCameraId);
     }
   }
 
@@ -154,12 +175,8 @@ export class EntryFormComponent implements OnInit, OnDestroy {
     this.cameraOpen.set(true);
 
     try {
-      // The video element is created by the cameraOpen view. Wait for Angular
-      // to render it before attaching the MediaStream.
       await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 
-      // First request permission. Device labels are often unavailable until
-      // the user has granted camera access at least once.
       await this.startCamera(this.selectedCameraId() ?? undefined);
       await this.loadCameraDevices();
       this.cameraDevicesListener = () => {
@@ -202,17 +219,29 @@ export class EntryFormComponent implements OnInit, OnDestroy {
   }
 
   async switchCamera() {
-    const cameras = this.availableCameras();
-    if (cameras.length < 2) return;
+    if (this.availableCameras().length < 2) return;
 
     const currentId = this.getActiveCameraId() ?? this.selectedCameraId();
-    const currentIndex = cameras.findIndex(camera => camera.deviceId === currentId);
-    const nextCamera = cameras[(currentIndex + 1) % cameras.length];
+    let nextCameraId: string | null;
+
+    if (currentId === this.frontCameraId && this.rearCameraId) {
+      nextCameraId = this.rearCameraId;
+    } else if (currentId === this.rearCameraId && this.frontCameraId) {
+      nextCameraId = this.frontCameraId;
+    } else {
+      // If the browser did not identify the current camera, prefer the
+      // opposite side rather than cycling through auxiliary rear lenses.
+      nextCameraId = currentId === this.rearCameraId
+        ? this.frontCameraId
+        : this.rearCameraId;
+    }
+
+    if (!nextCameraId || nextCameraId === currentId) return;
 
     this.cameraStarting.set(true);
     try {
-      this.selectedCameraId.set(nextCamera.deviceId);
-      await this.startCamera(nextCamera.deviceId);
+      this.selectedCameraId.set(nextCameraId);
+      await this.startCamera(nextCameraId);
     } catch {
       this.snackBar.open('Não foi possível trocar a câmera.', 'Fechar', { duration: 4000 });
     } finally {
