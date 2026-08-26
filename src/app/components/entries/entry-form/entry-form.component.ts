@@ -53,9 +53,12 @@ export class EntryFormComponent implements OnInit, OnDestroy {
   selectedEmotion = signal<Emotion | null>(null);
   cameraOpen = signal(false);
   cameraStarting = signal(false);
+  availableCameras = signal<MediaDeviceInfo[]>([]);
+  selectedCameraId = signal<string | null>(null);
 
   private quillInstance: any = null;
   private cameraStream: MediaStream | null = null;
+  private cameraDevicesListener?: () => void;
   isEdit = false;
   entryId: string | null = null;
   entryFormattedDate: string | null = null;
@@ -128,6 +131,19 @@ export class EntryFormComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async loadCameraDevices() {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter(device => device.kind === 'videoinput');
+    this.availableCameras.set(cameras);
+
+    if (!this.selectedCameraId() && cameras.length) {
+      const rearCamera = cameras.find(camera => /back|rear|environment/i.test(camera.label));
+      this.selectedCameraId.set(rearCamera?.deviceId ?? cameras[0].deviceId);
+    }
+  }
+
   async openCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
       this.snackBar.open('A câmera não é suportada neste navegador.', 'Fechar', { duration: 4000 });
@@ -138,20 +154,65 @@ export class EntryFormComponent implements OnInit, OnDestroy {
     this.cameraOpen.set(true);
 
     try {
-      this.cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } },
-        audio: false
-      });
+      // First request permission. Device labels are often unavailable until
+      // the user has granted camera access at least once.
+      await this.startCamera(this.selectedCameraId() ?? undefined);
+      await this.loadCameraDevices();
+      this.cameraDevicesListener = () => {
+        this.loadCameraDevices().catch(() => undefined);
+      };
+      navigator.mediaDevices.addEventListener?.('devicechange', this.cameraDevicesListener);
 
-      setTimeout(() => {
-        if (this.cameraVideo?.nativeElement) {
-          this.cameraVideo.nativeElement.srcObject = this.cameraStream;
-          this.cameraVideo.nativeElement.play().catch(() => undefined);
-        }
-      });
+      const currentCameraId = this.selectedCameraId();
+      if (currentCameraId && currentCameraId !== this.getActiveCameraId()) {
+        await this.startCamera(currentCameraId);
+      }
     } catch {
       this.closeCamera();
       this.snackBar.open('Não foi possível acessar a câmera. Verifique a permissão do navegador.', 'Fechar', { duration: 5000 });
+    } finally {
+      this.cameraStarting.set(false);
+    }
+  }
+
+  private async startCamera(deviceId?: string) {
+    this.stopCameraStream();
+
+    const videoConstraints: MediaTrackConstraints = deviceId
+      ? { deviceId: { exact: deviceId } }
+      : { facingMode: { ideal: 'environment' } };
+
+    this.cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: videoConstraints,
+      audio: false
+    });
+
+    setTimeout(() => {
+      if (this.cameraVideo?.nativeElement) {
+        this.cameraVideo.nativeElement.srcObject = this.cameraStream;
+        this.cameraVideo.nativeElement.play().catch(() => undefined);
+      }
+    });
+  }
+
+  private getActiveCameraId(): string | null {
+    return this.cameraStream?.getVideoTracks()[0]?.getSettings().deviceId ?? null;
+  }
+
+  async switchCamera() {
+    const cameras = this.availableCameras();
+    if (cameras.length < 2) return;
+
+    const currentId = this.getActiveCameraId() ?? this.selectedCameraId();
+    const currentIndex = cameras.findIndex(camera => camera.deviceId === currentId);
+    const nextCamera = cameras[(currentIndex + 1) % cameras.length];
+
+    this.cameraStarting.set(true);
+    try {
+      this.selectedCameraId.set(nextCamera.deviceId);
+      await this.startCamera(nextCamera.deviceId);
+    } catch {
+      this.snackBar.open('Não foi possível trocar a câmera.', 'Fechar', { duration: 4000 });
     } finally {
       this.cameraStarting.set(false);
     }
@@ -178,9 +239,17 @@ export class EntryFormComponent implements OnInit, OnDestroy {
     }, 'image/jpeg', 0.9);
   }
 
-  closeCamera() {
+  private stopCameraStream() {
     this.cameraStream?.getTracks().forEach(track => track.stop());
     this.cameraStream = null;
+  }
+
+  closeCamera() {
+    this.stopCameraStream();
+    if (this.cameraDevicesListener) {
+      navigator.mediaDevices?.removeEventListener?.('devicechange', this.cameraDevicesListener);
+      this.cameraDevicesListener = undefined;
+    }
     this.cameraOpen.set(false);
   }
 
