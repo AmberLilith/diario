@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -30,7 +30,7 @@ import { EmotionPickerDialogComponent } from '../../emotions/emotion-picker-dial
   templateUrl: './entry-form.component.html',
   styleUrl: './entry-form.component.css'
 })
-export class EntryFormComponent implements OnInit {
+export class EntryFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private entriesService = inject(EntriesService);
   private emotionsService = inject(EmotionsService);
@@ -41,6 +41,8 @@ export class EntryFormComponent implements OnInit {
   private auth = inject(AuthService);
   helper = inject(HelperService);
 
+  @ViewChild('cameraVideo') cameraVideo?: ElementRef<HTMLVideoElement>;
+
   form = this.fb.group({
     content: ['', Validators.required],
   });
@@ -49,8 +51,11 @@ export class EntryFormComponent implements OnInit {
 
   loading = signal(false);
   selectedEmotion = signal<Emotion | null>(null);
+  cameraOpen = signal(false);
+  cameraStarting = signal(false);
 
   private quillInstance: any = null;
+  private cameraStream: MediaStream | null = null;
   isEdit = false;
   entryId: string | null = null;
   entryFormattedDate: string | null = null;
@@ -106,17 +111,81 @@ export class EntryFormComponent implements OnInit {
     if (!files.length || !this.quillInstance) return;
 
     for (const file of files) {
-      try {
-        const signedUrl = await this.entriesService.uploadTempPhoto(file, this.auth.getUserId());
-        const range = this.quillInstance.getSelection(true);
-        this.quillInstance.insertEmbed(range.index, 'image', signedUrl);
-        this.quillInstance.setSelection(range.index + 1);
-      } catch {
-        this.snackBar.open('Erro ao inserir foto', 'Fechar', { duration: 4000 });
-      }
+      await this.insertPhotoFile(file);
     }
 
     (event.target as HTMLInputElement).value = '';
+  }
+
+  async insertPhotoFile(file: File) {
+    try {
+      const signedUrl = await this.entriesService.uploadTempPhoto(file, this.auth.getUserId());
+      const range = this.quillInstance.getSelection(true);
+      this.quillInstance.insertEmbed(range.index, 'image', signedUrl);
+      this.quillInstance.setSelection(range.index + 1);
+    } catch {
+      this.snackBar.open('Erro ao inserir foto', 'Fechar', { duration: 4000 });
+    }
+  }
+
+  async openCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.snackBar.open('A câmera não é suportada neste navegador.', 'Fechar', { duration: 4000 });
+      return;
+    }
+
+    this.cameraStarting.set(true);
+    this.cameraOpen.set(true);
+
+    try {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      });
+
+      setTimeout(() => {
+        if (this.cameraVideo?.nativeElement) {
+          this.cameraVideo.nativeElement.srcObject = this.cameraStream;
+          this.cameraVideo.nativeElement.play().catch(() => undefined);
+        }
+      });
+    } catch {
+      this.closeCamera();
+      this.snackBar.open('Não foi possível acessar a câmera. Verifique a permissão do navegador.', 'Fechar', { duration: 5000 });
+    } finally {
+      this.cameraStarting.set(false);
+    }
+  }
+
+  async capturePhoto() {
+    const video = this.cameraVideo?.nativeElement;
+    if (!video || !this.quillInstance || !video.videoWidth || !video.videoHeight) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async blob => {
+      if (!blob) return;
+      const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      await this.insertPhotoFile(file);
+      this.closeCamera();
+    }, 'image/jpeg', 0.9);
+  }
+
+  closeCamera() {
+    this.cameraStream?.getTracks().forEach(track => track.stop());
+    this.cameraStream = null;
+    this.cameraOpen.set(false);
+  }
+
+  ngOnDestroy() {
+    this.closeCamera();
   }
 
   openEmotionPicker() {
@@ -146,7 +215,6 @@ export class EntryFormComponent implements OnInit {
       };
 
       if (this.isEdit && this.entryId) {
-        // Identifica paths que foram removidos do editor
         const previousPaths = this.entryToEdit?.photos_paths ?? [];
         const pathsToDelete = previousPaths.filter(
           path => !currentPaths?.includes(path)
