@@ -56,29 +56,31 @@
                     </button>
                 </div>
 
-                @if (cameraStarting()) {
-                    <div class="camera-loading">
-                        <mat-spinner diameter="36"></mat-spinner>
-                        <span>Iniciando câmera...</span>
-                    </div>
-                } @else {
+                <div class="camera-preview">
                     <video #cameraVideo class="camera-video" autoplay playsinline></video>
-                    <div class="camera-actions">
-                        <button type="button" mat-flat-button color="primary" (click)="capturePhoto()">
-                            <mat-icon>camera</mat-icon>
-                            Tirar foto
+                    @if (cameraStarting()) {
+                        <div class="camera-loading">
+                            <mat-spinner diameter="36"></mat-spinner>
+                            <span>Iniciando câmera...</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="camera-actions">
+                    <button type="button" mat-flat-button color="primary" (click)="capturePhoto()" [disabled]="cameraStarting()">
+                        <mat-icon>camera</mat-icon>
+                        Tirar foto
+                    </button>
+                    @if (availableCameras().length > 1) {
+                        <button type="button" mat-stroked-button (click)="switchCamera()" [disabled]="cameraStarting()">
+                            <mat-icon>flip_camera_ios</mat-icon>
+                            Trocar câmera
                         </button>
-                        @if (availableCameras().length > 1) {
-                            <button type="button" mat-stroked-button (click)="switchCamera()" [disabled]="cameraStarting()">
-                                <mat-icon>flip_camera_ios</mat-icon>
-                                Trocar câmera
-                            </button>
-                        }
-                        <button type="button" mat-stroked-button (click)="closeCamera()">
-                            Cancelar
-                        </button>
-                    </div>
-                }
+                    }
+                    <button type="button" mat-stroked-button (click)="closeCamera()">
+                        Cancelar
+                    </button>
+                </div>
             </div>
         }
 
