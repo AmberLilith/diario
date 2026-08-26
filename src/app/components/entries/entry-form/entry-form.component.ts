@@ -154,6 +154,10 @@ export class EntryFormComponent implements OnInit, OnDestroy {
     this.cameraOpen.set(true);
 
     try {
+      // The video element is created by the cameraOpen view. Wait for Angular
+      // to render it before attaching the MediaStream.
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
       // First request permission. Device labels are often unavailable until
       // the user has granted camera access at least once.
       await this.startCamera(this.selectedCameraId() ?? undefined);
@@ -187,12 +191,10 @@ export class EntryFormComponent implements OnInit, OnDestroy {
       audio: false
     });
 
-    setTimeout(() => {
-      if (this.cameraVideo?.nativeElement) {
-        this.cameraVideo.nativeElement.srcObject = this.cameraStream;
-        this.cameraVideo.nativeElement.play().catch(() => undefined);
-      }
-    });
+    if (this.cameraVideo?.nativeElement) {
+      this.cameraVideo.nativeElement.srcObject = this.cameraStream;
+      await this.cameraVideo.nativeElement.play().catch(() => undefined);
+    }
   }
 
   private getActiveCameraId(): string | null {
