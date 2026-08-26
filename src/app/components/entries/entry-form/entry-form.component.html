@@ -68,6 +68,12 @@
                             <mat-icon>camera</mat-icon>
                             Tirar foto
                         </button>
+                        @if (availableCameras().length > 1) {
+                            <button type="button" mat-stroked-button (click)="switchCamera()" [disabled]="cameraStarting()">
+                                <mat-icon>flip_camera_ios</mat-icon>
+                                Trocar câmera
+                            </button>
+                        }
                         <button type="button" mat-stroked-button (click)="closeCamera()">
                             Cancelar
                         </button>
