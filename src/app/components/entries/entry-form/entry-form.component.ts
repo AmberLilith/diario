@@ -332,6 +332,7 @@ export class EntryFormComponent implements OnInit, OnDestroy {
       this.snackBar.open('Relato salvo com sucesso!', '', { duration: 3000 });
       this.router.navigate(['/entries']);
     } catch (err: any) {
+      console.error('Erro completo ao salvar relato:', err);
       this.snackBar.open('Erro ao salvar: ' + err.message, 'Fechar', { duration: 5000 });
     } finally {
       this.loading.set(false);
