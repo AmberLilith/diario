@@ -88,6 +88,21 @@ export class EntryFormComponent implements OnInit, OnDestroy {
         this.openLightbox((target as HTMLImageElement).src);
       }
     });
+
+    quill.root.addEventListener('paste', (e: ClipboardEvent) => {
+      const clipboardItems = Array.from(e.clipboardData?.items ?? []);
+      const hasImage = clipboardItems.some(item => item.type.startsWith('image/'));
+
+      if (hasImage) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.snackBar.open(
+          'Imagens não podem ser coladas diretamente. Use o botão de imagem ou a câmera.',
+          'Fechar',
+          { duration: 5000 }
+        );
+      }
+    }, true);
   }
 
   openLightbox(url: string) {
@@ -306,6 +321,21 @@ export class EntryFormComponent implements OnInit, OnDestroy {
 
     try {
       const currentContent = this.quillInstance.root.innerHTML;
+
+      const contentContainer = document.createElement('div');
+      contentContainer.innerHTML = currentContent;
+      const hasEmbeddedImage = Array.from(contentContainer.querySelectorAll('img'))
+        .some(img => img.getAttribute('src')?.trim().toLowerCase().startsWith('data:'));
+
+      if (hasEmbeddedImage) {
+        this.snackBar.open(
+          'O relato contém uma imagem colada diretamente. Remova-a e use o botão de imagem ou a câmera.',
+          'Fechar',
+          { duration: 6000 }
+        );
+        return;
+      }
+
       const currentPaths = this.helper.getAllPhotosPaths(currentContent);
 
       const formData = {
